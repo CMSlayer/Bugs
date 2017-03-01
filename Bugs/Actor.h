@@ -10,6 +10,9 @@ const int ANT_TYPE_0 = 0;
 const int ANT_TYPE_1 = 1;
 const int ANT_TYPE_2 = 2;
 const int ANT_TYPE_3 = 3;
+const int BABYHOPPER_START_HP= 500;
+const int BABYHOPPER_START_DEPTH= 1;
+const int GRASSHOPPER_REST_PERIOD= 2;
 
 class Actor : public GraphObject
 {
