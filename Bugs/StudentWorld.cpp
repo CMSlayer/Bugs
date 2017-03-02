@@ -32,7 +32,7 @@ int StudentWorld::init()
         return GWSTATUS_LEVEL_ERROR;
     
     for(int x=0; x<64; x++)
-        for(int y=0; x<64; y++)
+        for(int y=0; y<64; y++)
         {
             Field::FieldItem item = f.getContentsOf(x,y);
             Actor* a;
@@ -125,8 +125,10 @@ int StudentWorld::init()
                     addActor(a);
                     break;
                 }
-                default:
+                case (Field::FieldItem::empty):
                     break;
+                default:
+                    return GWSTATUS_LEVEL_ERROR;
             }
         }
     
@@ -135,6 +137,26 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
+    decreaseTickCount();
+    
+    setGameStatText("something");
+    
+    for(int r=0; r<64; r++)
+        for(int c=0; c<64; c++)
+            for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end(); it++)
+                {
+                    //get the actor's current location
+                    int oldX= (*it)->getX() , oldY = (*it)->getY();
+                    
+                    if(!(*it)->isDead())
+                        (*it)->doSomething();
+                    
+                    if((*it)->getX()!= oldX || (*it)->getY()!=oldY)
+                        moveActor((*it), oldX, oldY, it);
+                }
+
+    if(getTicks()<=0)
+        return GWSTATUS_NO_WINNER;
     
     return GWSTATUS_CONTINUE_GAME;
 }
@@ -183,11 +205,11 @@ void StudentWorld::addActor(Actor* a)
 // only ever going be food.)
 Actor* StudentWorld::getEdibleAt(int x, int y) const
 {
-    StudentWorld* s= new StudentWorld("hi there");
-    //Food::Food(StudentWorld* sw, int startX, int startY, int energy)
-    Food* a= new Food(s,0, 0, FOOD_START_ENERGY);
-    return a;
-    
+    vector<Actor*> v = m_PlayingField[y][x];
+    for(auto it = v.begin(); it!= v.end(); it++)
+        if((*it)->isEdible())
+            return (*it);
+    return nullptr;
 }
 
 // If a pheromone of the indicated colony is at x,y, return a pointer
@@ -281,6 +303,51 @@ bool StudentWorld::initializeCompiler(int colony)
     
     return false;
 }
+
+
+void StudentWorld::decreaseTickCount()
+{
+    m_ticks--;
+}
+
+
+void StudentWorld::moveActor(Actor* a, int oldX, int oldY, vector<Actor*>::iterator it)
+{
+    m_PlayingField[oldY][oldX].erase(it);
+    addActor(a);
+}
+
+void StudentWorld::formatGameStatText()
+{
+    
+}
+
+int StudentWorld::getTicks() const
+{
+    return m_ticks;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

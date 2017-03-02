@@ -56,8 +56,14 @@ public:
     
     bool initializeCompiler(int colony);
     
+    void decreaseTickCount();
     
-
+    void moveActor(Actor* a, int oldX, int oldY, vector<Actor*>::iterator it);
+    
+    void formatGameStatText();
+    
+    int getTicks() const;
+    
 private:
     vector<Compiler*> m_antInstructions;
     vector<Actor*> m_PlayingField[64][64];
@@ -66,10 +72,6 @@ private:
 };
 
 //=============================================Auxiliary Functions
-
-template<typename Predicate>
-bool isAt(int x, int y, Predicate p);
-
 
 
 
