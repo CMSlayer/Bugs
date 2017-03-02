@@ -75,6 +75,9 @@ public:
     
     StudentWorld* getWorld() const;
     
+    //=====my functions
+    virtual int getColony() const;
+    
 private:
     StudentWorld* m_World;
 };
@@ -130,6 +133,7 @@ public:
     virtual bool isMyHill(int colony) const;
 private:
     Compiler* m_offspringInstructions;
+    int m_colony;
 };
 
 //===========================================Pheremone
@@ -199,7 +203,7 @@ public:
     virtual void getBitten(int amt);
     virtual bool isEnemy(int colony) const;
     virtual bool moveForwardIfPossible();
-    int 
+    virtual int getColony() const;
 private:
     Compiler* m_myInstructions;
     int m_colony;

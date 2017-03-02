@@ -77,6 +77,11 @@ StudentWorld* Actor::getWorld() const
     return m_World;
 }
 
+int Actor::getColony() const
+{
+    return 0;
+}
+
 
 //==============================================class Pebble : public Actor
 
@@ -175,6 +180,7 @@ bool AntHill::isMyHill(int colony) const
 {
     return false;
 }
+
 
 //==============================================class Pheromone : public EnergyHolder
 
@@ -313,6 +319,11 @@ bool Ant::isEnemy(int colony) const
 bool Ant::moveForwardIfPossible()
 {
     return false;
+}
+
+int Ant::getColony() const
+{
+    return m_colony;
 }
 
 //==============================================class Grasshopper : public Insect

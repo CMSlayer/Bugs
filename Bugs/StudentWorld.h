@@ -13,7 +13,7 @@ using namespace std;
 class Compiler;
 class Actor;
 
-const int MAX_TICKS = 2000;
+const int STARTING_TICKS = 2000;
 const int MIN_ANTS_NEEDED_TO_WIN = 6;
 
 
@@ -61,6 +61,7 @@ public:
 private:
     vector<Compiler*> m_antInstructions;
     vector<Actor*> m_PlayingField[64][64];
+    int m_ticks;
     
 };
 

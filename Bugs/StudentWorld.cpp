@@ -19,8 +19,9 @@ StudentWorld::StudentWorld(string assetDir)
 
 int StudentWorld::init()
 {
+    m_ticks=STARTING_TICKS;
     
-    StudentWorld ThisIsTheWorld(assetDirectory());
+    StudentWorld* ThisIsTheWorld = new StudentWorld(assetDirectory());
     
     string fieldFileName;
     Field f;
@@ -44,7 +45,7 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_0))
                         {
-                         a= new AntHill(&ThisIsTheWorld, x, y, ANT_TYPE_0, m_antInstructions.at(0));
+                         a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_0, m_antInstructions.at(0));
                          addActor(a);
                         }
                         else
@@ -58,7 +59,7 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_1))
                         {
-                            a= new AntHill(&ThisIsTheWorld, x, y, ANT_TYPE_1, m_antInstructions.at(1));
+                            a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_1, m_antInstructions.at(1));
                             addActor(a);
                         }
                         else
@@ -72,7 +73,7 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_2))
                         {
-                            a= new AntHill(&ThisIsTheWorld, x, y, ANT_TYPE_2, m_antInstructions.at(2));
+                            a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_2, m_antInstructions.at(2));
                             addActor(a);
                         }
                         else
@@ -86,7 +87,7 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_3))
                         {
-                            a= new AntHill(&ThisIsTheWorld, x, y, ANT_TYPE_3, m_antInstructions.at(3));
+                            a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_3, m_antInstructions.at(3));
                             addActor(a);
                         }
                         else
@@ -96,31 +97,31 @@ int StudentWorld::init()
                 }
                 case (Field::FieldItem::food):
                 {
-                    a= new Food(&ThisIsTheWorld, x, y, FOOD_START_ENERGY);
+                    a= new Food(ThisIsTheWorld, x, y, FOOD_START_ENERGY);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::grasshopper):
                 {
-                    a= new BabyGrasshopper(&ThisIsTheWorld, x, y);
+                    a= new BabyGrasshopper(ThisIsTheWorld, x, y);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::water):
                 {
-                    a= new WaterPool(&ThisIsTheWorld, x, y);
+                    a= new WaterPool(ThisIsTheWorld, x, y);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::rock):
                 {
-                    a= new Pebble(&ThisIsTheWorld, x, y);
+                    a= new Pebble(ThisIsTheWorld, x, y);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::poison):
                 {
-                    a= new Poison(&ThisIsTheWorld, x, y);
+                    a= new Poison(ThisIsTheWorld, x, y);
                     addActor(a);
                     break;
                 }
@@ -134,20 +135,31 @@ int StudentWorld::init()
 
 int StudentWorld::move()
 {
-		  // This code is here merely to allow the game to build, run, and terminate after you hit enter.
-		  // Notice that the return value GWSTATUS_NO_WINNER will cause our framework to end the simulation.
-    return GWSTATUS_NO_WINNER;
+    
+    return GWSTATUS_CONTINUE_GAME;
 }
 
 void StudentWorld::cleanUp()
 {
+    int count=0;
+    
     for(int r=0; r<64; r++)
         for(int c=0; c<64; c++)
             for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end(); it++)
-                delete *it;
+            {
+                if(count<1)
+                {
+                    delete (*it)->getWorld();
+                    count++;
+                }
+                
+                delete (*it);
+            }
     
     for( auto it = m_antInstructions.begin(); it!=m_antInstructions.end(); it++)
-        delete *it;
+        delete (*it);
+    
+    
     
 }
 
