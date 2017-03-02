@@ -21,6 +21,9 @@ int StudentWorld::init()
 {
     m_ticks=STARTING_TICKS;
     
+    //at the start there is no winner
+    m_winningColony = -1;
+    
     StudentWorld* ThisIsTheWorld = new StudentWorld(assetDirectory());
     
     string fieldFileName;
@@ -47,6 +50,7 @@ int StudentWorld::init()
                         {
                          a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_0, m_antInstructions.at(0));
                          addActor(a);
+                            m_colonyScores.push_back(0);
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -61,6 +65,7 @@ int StudentWorld::init()
                         {
                             a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_1, m_antInstructions.at(1));
                             addActor(a);
+                            m_colonyScores.push_back(0);
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -75,6 +80,7 @@ int StudentWorld::init()
                         {
                             a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_2, m_antInstructions.at(2));
                             addActor(a);
+                            m_colonyScores.push_back(0);
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -89,6 +95,7 @@ int StudentWorld::init()
                         {
                             a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_3, m_antInstructions.at(3));
                             addActor(a);
+                            m_colonyScores.push_back(0);
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -154,9 +161,19 @@ int StudentWorld::move()
                     if((*it)->getX()!= oldX || (*it)->getY()!=oldY)
                         moveActor((*it), oldX, oldY, it);
                 }
+    
+    removeDeadActors();
+    
+    formatGameStatText();
 
     if(getTicks()<=0)
-        return GWSTATUS_NO_WINNER;
+    {
+        if(getWinningColony() != -1)
+            
+            return GWSTATUS_PLAYER_WON;
+        else
+            return GWSTATUS_NO_WINNER;
+    }
     
     return GWSTATUS_CONTINUE_GAME;
 }
@@ -216,9 +233,11 @@ Actor* StudentWorld::getEdibleAt(int x, int y) const
 // to it; otherwise, return a null pointer.
 Actor* StudentWorld::getPheromoneAt(int x, int y, int colony) const
 {
-    StudentWorld* s= new StudentWorld("hi there");
-    //Pheremone::Pheromone(StudentWorld* sw, int startX, int startY, int colony)
-    return new Pheromone(s, 0, 0, 0);
+    vector<Actor*> v = m_PlayingField[y][x];
+    for(auto it = v.begin(); it!= v.end(); it++)
+        if((*it)->isPheromone())
+            return (*it);
+    return nullptr;
 }
 
 // Is an enemy of an ant of the indicated colony at x,y?
@@ -275,9 +294,10 @@ bool StudentWorld::stunAllStunnableAt(int x, int y)
 }
 
 // Record another ant birth for the indicated colony.
-void StudentWorld::increaseScore(int colony)
+void StudentWorld::updateScore(int colony, bool increase)
 {
-    
+    m_colonyScores[colony]++;
+    updateWinner(colony);
 }
 
 StudentWorld::~StudentWorld()
@@ -327,11 +347,36 @@ int StudentWorld::getTicks() const
     return m_ticks;
 }
 
+void StudentWorld::removeDeadActors()
+{
+    for(int r=0; r<64; r++)
+        for(int c=0; c<64; c++)
+            for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end();)
+            {
+                if((*it)->isDead())
+                {
+                    it= m_PlayingField[r][c].erase(it);
+                }
+                else
+                    it++;
+            }
+}
 
 
+int StudentWorld::getWinningColony() const
+{
+    return m_winningColony;
+}
 
-
-
+//checks to see if the indicated colony has more ants than
+//colony that is currently in the lead,
+//If it does, it sets m_winningAnt to colony
+//otherwise, it leaves m_winningAnt unchanged
+void StudentWorld::updateWinner(int colony)
+{
+    if(m_colonyScores[colony]>m_winningColony)
+        m_winningColony= colony;
+}
 
 
 

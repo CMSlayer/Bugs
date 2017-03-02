@@ -52,7 +52,7 @@ public:
     
     bool stunAllStunnableAt(int x, int y);
     
-    void increaseScore(int colony);
+    void updateScore(int colony, bool increase);
     
     bool initializeCompiler(int colony);
     
@@ -64,9 +64,19 @@ public:
     
     int getTicks() const;
     
+    void removeDeadActors();
+    
+    void updateWinner(int colony);
+    
+    int getWinningColony() const;
+    
 private:
-    vector<Compiler*> m_antInstructions;
     vector<Actor*> m_PlayingField[64][64];
+    
+    vector<Compiler*> m_antInstructions;
+    vector<int> m_colonyScores;
+    
+    int m_winningColony;
     int m_ticks;
     
 };
