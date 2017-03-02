@@ -2,60 +2,84 @@
 #define ACTOR_H_
 
 #include "GraphObject.h"
+#include "StudentWorld.h"
 
 class StudentWorld;
 class Compiler;
 
-const int ANT_TYPE_0 = 0;
-const int ANT_TYPE_1 = 1;
-const int ANT_TYPE_2 = 2;
-const int ANT_TYPE_3 = 3;
-const int BABYHOPPER_START_HP= 500;
-const int BABYHOPPER_START_DEPTH= 1;
-const int GRASSHOPPER_REST_PERIOD= 2;
+const int ANT_TYPE_0 = IID_ANT_TYPE0;
+const int ANT_TYPE_1 = IID_ANT_TYPE1;
+const int ANT_TYPE_2 = IID_ANT_TYPE2;
+const int ANT_TYPE_3 = IID_ANT_TYPE3;
 
+const int START_DEPTH_INSECT    = 1;
+const int START_DEPTH_PEBBLE    = 1;
+const int START_DEPTH_FOOD      = 2;
+const int START_DEPTH_PHEREMONE = 2;
+const int START_DEPTH_ANTHILL   = 2;
+const int START_DEPTH_WATER     = 2;
+const int START_DEPTH_POISON    = 2;
+
+const int BABYHOPPER_START_HP =      500;
+const int ADULTHOPPER_START_HP =     1600;
+const int ANT_START_HP =             1500;
+const int ANTHILL_START_HP =         8999;
+const int FOOD_START_ENERGY =        6000;
+const int PHEREMONE_START_STRENGTH = 256;
+const int DEAD_INSECT_ENERGY =       100;
+
+const int MIN_ANTHILL_BIRTH_ENERGY = 2000;
+const int ENERGY_LOST_TO_BIRTH =     1500;
+const int MOULTING_ENERGY =          1600;
+
+const int POISON_DAMAGE_POINTS =           150;
+const int ANT_BITE_DAMAGE_POINTS =         15;
+const int GRASSHOPPER_BITE_DAMAGE_POINTS = 50;
+
+const int MAX_PHEREMONE_STRENGTH =         768;
+const int MAX_ANT_HOLDING_CAPACITY =       1800;
+const int MAX_ANT_PICKUP_PER_TICK =        400;
+const int MAX_ANT_EAT_PER_TICK =           100;
+
+const int GRASSHOPPER_REST_PERIOD = 2;
+const int STUN_TIME = 2;
+
+//=============================================Actor
 class Actor : public GraphObject
 {
 public:
     Actor(StudentWorld* world, int startX, int startY, Direction startDir, int imageID, int depth);
     
-    // Action to perform each tick.
     virtual void doSomething() = 0;
     
-    // Is this actor dead?
+    
     virtual bool isDead() const;
     
-    // Does this actor block movement?
     virtual bool blocksMovement() const;
     
-    // Cause this actor to be be bitten, suffering an amount of damage.
     virtual void getBitten(int amt);
-    
-    // Cause this actor to be be poisoned.
+
     virtual void getPoisoned();
     
-    // Cause this actor to be be stunned.
     virtual void getStunned();
     
-    // Can this actor be picked up to be eaten?
     virtual bool isEdible() const;
-    
-    // Is this actor detected by an ant as a pheromone?
+
     virtual bool isPheromone() const;
     
-    // Is this actor an enemy of an ant of the indicated colony?
     virtual bool isEnemy(int colony) const;
     
-    // Is this actor detected as dangerous by an ant of the indicated colony?
     virtual bool isDangerous(int colony) const;
     
-    // Is this actor the anthill of the indicated colony?
     virtual bool isAntHill(int colony) const;
     
-    // Get this actor's world.
     StudentWorld* getWorld() const;
+    
+private:
+    StudentWorld* m_World;
 };
 
+//===========================================Pebble
 class Pebble : public Actor
 {
 public:
@@ -64,30 +88,31 @@ public:
     virtual bool blocksMovement() const;
 };
 
+//===========================================EnergyHolder
 class EnergyHolder : public Actor
 {
+public:
     EnergyHolder(StudentWorld* sw, int startX, int startY, Direction startDir, int energy, int imageID, int depth);
+   
     virtual bool isDead() const;
     
-    // Get this actor's amount of energy (for a Pheromone, same as strength).
     int getEnergy() const;
     
-    // Adjust this actor's amount of energy upward or downward.
     void updateEnergy(int amt);
     
-    // Add an amount of food to this actor's location.
     void addFood(int amt);
     
-    // Have this actor pick up an amount of food.
     int pickupFood(int amt);
     
-    // Have this actor pick up an amount of food and eat it.
     int pickupAndEatFood(int amt);
     
-    // Does this actor become food when it dies?
     virtual bool becomesFoodUponDeath() const;
+private:
+    int m_energy;
+    bool m_dead;
 };
 
+//===========================================Food
 class Food : public EnergyHolder
 {
 public:
@@ -96,14 +121,18 @@ public:
     virtual bool isEdible() const;
 };
 
+//===========================================AntHill
 class AntHill : public EnergyHolder
 {
 public:
     AntHill(StudentWorld* sw, int startX, int startY, int colony, Compiler* program);
     virtual void doSomething();
     virtual bool isMyHill(int colony) const;
+private:
+    Compiler* m_offspringInstructions;
 };
 
+//===========================================Pheremone
 class Pheromone : public EnergyHolder
 {
 public:
@@ -115,6 +144,7 @@ public:
     void increaseStrength();
 };
 
+//===========================================TriggerableActor
 class TriggerableActor : public Actor
 {
 public:
@@ -122,6 +152,7 @@ public:
     virtual bool isDangerous(int colony) const;
 };
 
+//===========================================WaterPool
 class WaterPool : public TriggerableActor
 {
 public:
@@ -129,6 +160,7 @@ public:
     virtual void doSomething();
 };
 
+//===========================================Poison
 class Poison : public TriggerableActor
 {
 public:
@@ -136,6 +168,7 @@ public:
     virtual void doSomething();
 };
 
+//===========================================Insect
 class Insect : public EnergyHolder
 {
 public:
@@ -147,17 +180,17 @@ public:
     virtual bool isEnemy(int colony);
     virtual bool becomesFoodUponDeath() const;
     
-    // Set x,y to the coordinates of the spot one step in front of this insect.
     void getXYInFrontOfMe(int x, int y) const;
     
-    // Move this insect one step forward if possible, and return true;
-    // otherwise, return false without moving.
     virtual bool moveForwardIfPossible();
-    
-    // Increase the number of ticks this insect will sleep by the indicated amount.
+
     void increaseSleepTicks(int amt);
+private:
+    bool m_lastMoveWasBlocked;
+    
 };
 
+//===========================================Ant
 class Ant : public Insect
 {
 public:
@@ -166,15 +199,22 @@ public:
     virtual void getBitten(int amt);
     virtual bool isEnemy(int colony) const;
     virtual bool moveForwardIfPossible();
+    int 
+private:
+    Compiler* m_myInstructions;
+    int m_colony;
 };
 
+//===========================================GrassHopper
 class Grasshopper : public Insect
 {
 public:
     Grasshopper(StudentWorld* sw, int startX, int startY, int energy, int imageID);
     virtual void doSomething();
+    void setNewPath();
 };
 
+//===========================================BabyGrasshopper
 class BabyGrasshopper : public Grasshopper
 {
 public:
@@ -182,6 +222,7 @@ public:
     virtual bool isEnemy(int colony) const;
 };
 
+//===========================================AdultGrasshopper
 class AdultGrasshopper : public Grasshopper
 {
 public:
@@ -189,6 +230,9 @@ public:
     virtual void getBitten(int amt);
 };
 
+//===========================================Auxiliary Function declarations
+
+GraphObject::Direction getRandomDir();
 
 
 #endif // ACTOR_H_
