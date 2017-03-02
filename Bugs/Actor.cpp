@@ -70,6 +70,11 @@ bool Actor::isAntHill(int colony) const
 {
     return false;
 }
+
+bool Actor::becomesFoodUponDeath() const
+{
+    return false;
+}
     
 // Get this actor's world.
 StudentWorld* Actor::getWorld() const

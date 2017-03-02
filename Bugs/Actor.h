@@ -73,6 +73,8 @@ public:
     
     virtual bool isAntHill(int colony) const;
     
+    virtual bool becomesFoodUponDeath() const;
+    
     StudentWorld* getWorld() const;
     
     //=====my functions

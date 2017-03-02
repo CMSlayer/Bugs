@@ -146,7 +146,7 @@ int StudentWorld::move()
 {
     decreaseTickCount();
     
-    setGameStatText("something");
+    formatGameStatText();
     
     for(int r=0; r<64; r++)
         for(int c=0; c<64; c++)
@@ -164,6 +164,7 @@ int StudentWorld::move()
     
     removeDeadActors();
     
+    //update the text at the top of the screen
     formatGameStatText();
 
     if(getTicks()<=0)
@@ -278,25 +279,55 @@ bool StudentWorld::isAntHillAt(int x, int y, int colony) const
 // enemy was bitten.
 bool StudentWorld::biteEnemyAt(Actor* me, int colony, int biteDamage)
 {
-    return true;
+    vector<Actor*> v = m_PlayingField[me->getY()][me->getX()];
+    
+    for(auto it = v.begin(); it!= v.end(); it++)
+        if((*it)->isEnemy(colony) && (*it)!= me)
+        {
+            (*it)->getBitten(biteDamage);
+            return true;
+        }
+
+    return false;
 }
 
 // Poison all poisonable actors at x,y.
 bool StudentWorld::poisonAllPoisonableAt(int x, int y)
 {
-    return true;
+    bool poisonedAnActor= false;
+    
+    vector<Actor*> v = m_PlayingField[y][x];
+    for(auto it = v.begin(); it!= v.end(); it++)
+        if((*it)->becomesFoodUponDeath())
+        {
+            (*it)->getPoisoned();
+            poisonedAnActor = true;
+        }
+    return poisonedAnActor;
 }
 
 // Stun all stunnable actors at x,y.
 bool StudentWorld::stunAllStunnableAt(int x, int y)
 {
-    return true;
+    bool stunnedAnActor= false;
+    
+    vector<Actor*> v = m_PlayingField[y][x];
+    for(auto it = v.begin(); it!= v.end(); it++)
+        if((*it)->becomesFoodUponDeath())
+        {
+            (*it)->getStunned();
+            stunnedAnActor = true;
+        }
+    return stunnedAnActor;
 }
 
 // Record another ant birth for the indicated colony.
 void StudentWorld::updateScore(int colony, bool increase)
 {
-    m_colonyScores[colony]++;
+    if(increase)
+        m_colonyScores[colony]++;
+    else
+        m_colonyScores[colony]--;
     updateWinner(colony);
 }
 
@@ -339,7 +370,10 @@ void StudentWorld::moveActor(Actor* a, int oldX, int oldY, vector<Actor*>::itera
 
 void StudentWorld::formatGameStatText()
 {
-    
+    string s = "";
+    s+= "Ticks:";
+    s+="";
+    setGameStatText("something");
 }
 
 int StudentWorld::getTicks() const
@@ -376,6 +410,9 @@ void StudentWorld::updateWinner(int colony)
 {
     if(m_colonyScores[colony]>m_winningColony)
         m_winningColony= colony;
+    
+    if(m_colonyScores[m_winningColony]<MIN_ANTS_NEEDED_TO_WIN)
+        m_winningColony=-1;
 }
 
 
