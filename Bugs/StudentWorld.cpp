@@ -229,8 +229,8 @@ void StudentWorld::addActor(Actor* a)
 // only ever going be food.)
 Actor* StudentWorld::getEdibleAt(int x, int y) const
 {
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -245,8 +245,7 @@ Actor* StudentWorld::getEdibleAt(int x, int y) const
 // to it; otherwise, return a null pointer.
 Actor* StudentWorld::getPheromoneAt(int x, int y, int colony) const
 {
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -260,8 +259,7 @@ Actor* StudentWorld::getPheromoneAt(int x, int y, int colony) const
 // Is an enemy of an ant of the indicated colony at x,y?
 bool StudentWorld::isEnemyAt(int x, int y, int colony) const
 {
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -275,8 +273,7 @@ bool StudentWorld::isEnemyAt(int x, int y, int colony) const
 // Is something dangerous to an ant of the indicated colony at x,y?
 bool StudentWorld::isDangerAt(int x, int y, int colony) const
 {
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -291,8 +288,7 @@ bool StudentWorld::isDangerAt(int x, int y, int colony) const
 // Is the anthill of the indicated colony at x,y?
 bool StudentWorld::isAntHillAt(int x, int y, int colony) const
 {
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -310,9 +306,8 @@ bool StudentWorld::isAntHillAt(int x, int y, int colony) const
 // enemy was bitten.
 bool StudentWorld::biteEnemyAt(Actor* me, int colony, int biteDamage)
 {
-    vector<Actor*> v = m_PlayingField[me->getY()][me->getX()];
     
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[me->getY()][me->getX()].begin(); it!= m_PlayingField[me->getY()][me->getX()].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -331,8 +326,7 @@ bool StudentWorld::poisonAllPoisonableAt(int x, int y)
 {
     bool poisonedAnActor= false;
     
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
     {
         if((*it)!=nullptr)
         {
@@ -351,8 +345,7 @@ bool StudentWorld::stunAllStunnableAt(int x, int y)
 {
     bool stunnedAnActor= false;
     
-    vector<Actor*> v = m_PlayingField[y][x];
-    for(auto it = v.begin(); it!= v.end(); it++)
+    for(auto it = m_PlayingField[y][x].begin(); it!= m_PlayingField[y][x].end(); it++)
         if((*it)!=nullptr)
         {
             if((*it)->becomesFoodUponDeath())
@@ -462,32 +455,29 @@ void StudentWorld::removeDeadActors()
 {
     for(int r=0; r<64; r++)
         for(int c=0; c<64; c++)
-            for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end();it++)
+            for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end();)
             {
-                if((*it)!=nullptr)
-                {
-                    if((*it)->isDead())
-                    {
-                        if((*it)->becomesFoodUponDeath())
+                
+                    if((*it)->isDead() && (*it)->becomesFoodUponDeath())
                         {
                             if(getEdibleAt(c,r)!=nullptr)
                             {
+                                delete (*it);
+                                it= m_PlayingField[r][c].erase(it);
                                 Food* a = (Food *)getEdibleAt(c, r);
                                 a->updateEnergy(100);
-                                delete (*it);
                             }
                             else
                             {
+                                
+                                delete (*it);
+                                it= m_PlayingField[r][c].erase(it);
                                 Actor* a = new Food(this, c , r, 100 );
                                 addActor(a);
-                                delete (*it);
                             }
                         }
-                    
-                    }
+                        else it++;
                 }
-                
-            }
 }
 
 
