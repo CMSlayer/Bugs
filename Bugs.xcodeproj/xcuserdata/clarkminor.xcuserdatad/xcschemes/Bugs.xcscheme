@@ -67,8 +67,8 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "/Users/clarkminor/Downloads/Bugs/USCAnt.bug"
-            isEnabled = "YES">
+            argument = "USCAnt.bug"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "/Users/clarkminor/Downloads/Bugs/USCAnt.bug"

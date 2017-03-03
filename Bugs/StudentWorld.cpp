@@ -425,7 +425,7 @@ void StudentWorld::formatGameStatText()
             //concatenating each player's status
             s2+= (*it);
             s2+= "*: "; s2+= temp; 
-            s2+= m_colonyScores[colony]; s2+= "  ";
+            s2+= "  ";
             simulationHeader+=s2;
         }
         else
@@ -438,7 +438,7 @@ void StudentWorld::formatGameStatText()
             //concatenating each player's status
             s2+= (*it);
             s2+= ": "; s2+= temp;
-            s2+= m_colonyScores[colony]; s2+= "  ";
+            s2+= "  ";
             simulationHeader+=s2;
         }
     }
