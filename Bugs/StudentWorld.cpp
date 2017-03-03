@@ -462,7 +462,7 @@ void StudentWorld::removeDeadActors()
 {
     for(int r=0; r<64; r++)
         for(int c=0; c<64; c++)
-            for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end();)
+            for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end();it++)
             {
                 if((*it)!=nullptr)
                 {
@@ -484,9 +484,7 @@ void StudentWorld::removeDeadActors()
                     delete (*it);
                     }
                 }
-                else
-                    it++;
-            
+                
             }
 }
 
