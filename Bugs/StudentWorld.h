@@ -7,6 +7,9 @@
 #include "Compiler.h"
 #include <string>
 #include <vector>
+#include <iostream> // defines the overloads of the << operator
+#include <sstream>  // defines the type std::ostringstream
+#include <iomanip>  // defines the manipulator setw
 using namespace std;
 
 
@@ -58,8 +61,6 @@ public:
     
     void decreaseTickCount();
     
-    void moveActor(Actor* a, int oldX, int oldY, vector<Actor*>::iterator it);
-    
     void formatGameStatText();
     
     int getTicks() const;
@@ -73,8 +74,8 @@ public:
 private:
     vector<Actor*> m_PlayingField[64][64];
     
-    vector<Compiler*> m_antInstructions;
-    vector<int> m_colonyScores;
+    Compiler* m_antInstructions[4];
+    int m_colonyScores[4];
     
     int m_winningColony;
     int m_ticks;

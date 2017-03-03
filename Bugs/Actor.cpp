@@ -127,6 +127,10 @@ int EnergyHolder::getEnergy() const
 void EnergyHolder::updateEnergy(int amt)
 {
     m_energy += amt;
+    
+    if(m_energy<= 0)
+        m_dead = true;
+    
 }
 
 // Add an amount of food to this actor's location.
@@ -147,12 +151,13 @@ int EnergyHolder::pickupAndEatFood(int amt)
 {
     return 0;
 }
-    
+
 // Does this actor become food when it dies?
 bool EnergyHolder::becomesFoodUponDeath() const
 {
     return 0;
 }
+
 
 //==============================================class Food : public EnergyHolder
 
@@ -196,6 +201,7 @@ Pheromone::Pheromone(StudentWorld* sw, int startX, int startY, int colony)
 }
 void Pheromone::doSomething()
 {
+    updateEnergy(-1);
     
 }
 
@@ -234,7 +240,7 @@ WaterPool::WaterPool(StudentWorld* sw, int x, int y)
 
 void WaterPool::doSomething()
 {
-    
+    getWorld()->stunAllStunnableAt(getX(), getY());
 }
 
 //==============================================class Poison : public TriggerableActor
@@ -247,19 +253,22 @@ Poison::Poison(StudentWorld* sw, int x, int y)
 
 void Poison::doSomething()
 {
-    
+    getWorld()->poisonAllPoisonableAt(getX(), getY());
 }
 
 //==============================================class Insect : public EnergyHolder
 
 Insect::Insect(StudentWorld* world, int startX, int startY, int energy, int imageID)
-:EnergyHolder(world, startX, startY, getRandomDir(), energy, imageID, START_DEPTH_INSECT)
+:EnergyHolder(world, startX, startY, none, energy, imageID, START_DEPTH_INSECT)
 {
-    
+    m_lastMoveWasBlocked = false;
+    m_stunned = false;
+    m_stunCount=0;
+    m_currentWalkingDistance=0;
 }
 void Insect::doSomething()
 {
-    
+    updateEnergy(-1);
 }
 void Insect::getBitten(int amt)
 {
@@ -271,7 +280,11 @@ void Insect::getPoisoned()
 }
 void Insect::getStunned()
 {
-    
+    if(!m_stunned)
+    {
+        m_stunCount+=STUN_TIME;
+        m_stunned= true;
+    }
 }
 bool Insect::isEnemy(int colony)
 {
@@ -296,9 +309,38 @@ bool Insect::moveForwardIfPossible()
 }
     
 // Increase the number of ticks this insect will sleep by the indicated amount.
-void Insect::increaseSleepTicks(int amt)
+void Insect::updateStunTicks(int amt)
 {
+    m_stunned+= amt;
+}
+void Insect::setDistance(int dist)
+{
+    m_currentWalkingDistance= dist;
+}
+
+bool Insect::isStunned() const
+{
+    return m_stunned;
+}
+
+bool Insect::attemptToEat()
+{
+    Food* p = (Food*)getWorld()->getEdibleAt(getX(), getY());
+    if(p != nullptr)
+    {
+        if(p->getEnergy()>=200)
+        {
+            updateEnergy(200);
+            p->updateEnergy(-200);
+        }
+        else
+        {
+            updateEnergy(p->getEnergy());
+            p->updateEnergy(-200);
+        }
+    }
     
+    return false;
 }
 
 //==============================================class Ant : public Insect
@@ -342,35 +384,79 @@ void Grasshopper::doSomething()
 {
     
 }
-void setNewPath()
+void Grasshopper::setNewPath()
 {
+    setDistance(randInt(2, 10));
+    setDirection(getRandomDir());
+    
+}
+void Grasshopper::endTurn()
+{
+    updateStunTicks(2);
     
 }
 
-//==============================================class BabyGrasshopper : public Grasshopper
+//==============================================class BabyGrasshopper
 
 
 BabyGrasshopper::BabyGrasshopper(StudentWorld* sw, int startX, int startY)
 :Grasshopper(sw, startX, startY, BABYHOPPER_START_HP, IID_BABY_GRASSHOPPER)
 {
-    
-}
-bool BabyGrasshopper::isEnemy(int colony) const
-{
-    return false;
+    setNewPath();
 }
 
-//==============================================class AdultGrasshopper : public Grasshopper
+void BabyGrasshopper::doSomething()
+{
+    Insect::doSomething();
+    if(isDead())
+        return;
+    
+    // check if stunned
+    if(isStunned())
+    {
+        updateStunTicks(-1);
+        return;
+    }
+    if(getEnergy()==1600)
+        Moult();
+    
+    if(attemptToEat())
+        if(willItHappen(50))
+        {
+            
+        }
+        
+        
+    
+    
+}
+ void BabyGrasshopper::Moult()
+{
+        getBitten(-getEnergy());
+        AdultGrasshopper* a = new AdultGrasshopper(getWorld(), getX(), getY());
+        getWorld()->addActor(a);
+}
+
+//==============================================class AdultGrasshopper
 
 AdultGrasshopper::AdultGrasshopper(StudentWorld* sw, int startX, int startY)
 :Grasshopper(sw, startX, startY, ADULTHOPPER_START_HP, IID_ADULT_GRASSHOPPER)
 {
     
 }
-void AdultGrasshopper::getBitten(int amt)
+void AdultGrasshopper::getStunned()
 {
-    Insect::getBitten(amt);
+    //intentionally blank
 }
+void AdultGrasshopper::getPoisoned()
+{
+    //intentionally blank
+}
+bool AdultGrasshopper::isEnemy(int colony) const
+{
+    return true;
+}
+
 
 //==============================================Auxiliary Functions
 
@@ -400,7 +486,13 @@ GraphObject::Direction getRandomDir() //return a random direction: up, right, do
     }
 }
 
-
+bool willItHappen(int percent)
+{
+    if(randInt(1, 100)<= percent)
+        return true;
+    else
+        return false;
+}
 
 
 

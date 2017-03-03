@@ -185,14 +185,21 @@ public:
     virtual void getStunned();
     virtual bool isEnemy(int colony);
     virtual bool becomesFoodUponDeath() const;
-    
     void getXYInFrontOfMe(int x, int y) const;
-    
     virtual bool moveForwardIfPossible();
-
-    void increaseSleepTicks(int amt);
+    void setDistance(int dist);
+    bool isStunned() const;
+    void updateStunTicks(int amt);
+    bool attemptToEat();
+    
 private:
     bool m_lastMoveWasBlocked;
+    bool m_stunned;
+    int  m_stunCount;
+    int  m_currentWalkingDistance;
+
+    
+    
     
 };
 
@@ -209,6 +216,7 @@ public:
 private:
     Compiler* m_myInstructions;
     int m_colony;
+    
 };
 
 //===========================================GrassHopper
@@ -218,6 +226,7 @@ public:
     Grasshopper(StudentWorld* sw, int startX, int startY, int energy, int imageID);
     virtual void doSomething();
     void setNewPath();
+    void endTurn();
 };
 
 //===========================================BabyGrasshopper
@@ -225,7 +234,8 @@ class BabyGrasshopper : public Grasshopper
 {
 public:
     BabyGrasshopper(StudentWorld* sw, int startX, int startY);
-    virtual bool isEnemy(int colony) const;
+    virtual void doSomething();
+    void Moult();
 };
 
 //===========================================AdultGrasshopper
@@ -233,12 +243,15 @@ class AdultGrasshopper : public Grasshopper
 {
 public:
     AdultGrasshopper(StudentWorld* sw, int startX, int startY);
-    virtual void getBitten(int amt);
+    virtual void getStunned();
+    virtual void getPoisoned();
+    virtual bool isEnemy(int colony) const;
 };
 
 //===========================================Auxiliary Function declarations
 
 GraphObject::Direction getRandomDir();
+bool willItHappen(int percent);
 
 
 #endif // ACTOR_H_

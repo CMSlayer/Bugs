@@ -24,7 +24,7 @@ int StudentWorld::init()
     //at the start there is no winner
     m_winningColony = -1;
     
-    StudentWorld* ThisIsTheWorld = new StudentWorld(assetDirectory());
+    //StudentWorld* this = new StudentWorld(assetDirectory());
     
     string fieldFileName;
     Field f;
@@ -48,9 +48,9 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_0))
                         {
-                         a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_0, m_antInstructions.at(0));
+                         a= new AntHill(this, x, y, ANT_TYPE_0, m_antInstructions[0]);
                          addActor(a);
-                            m_colonyScores.push_back(0);
+                            m_colonyScores[0]=0;
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -63,9 +63,9 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_1))
                         {
-                            a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_1, m_antInstructions.at(1));
+                            a= new AntHill(this, x, y, ANT_TYPE_1, m_antInstructions[1]);
                             addActor(a);
-                            m_colonyScores.push_back(0);
+                            m_colonyScores[1]=0;
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -78,9 +78,9 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_2))
                         {
-                            a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_2, m_antInstructions.at(2));
+                            a= new AntHill(this, x, y, ANT_TYPE_2, m_antInstructions[2]);
                             addActor(a);
-                            m_colonyScores.push_back(0);
+                            m_colonyScores[2]=0;
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -93,9 +93,9 @@ int StudentWorld::init()
                     {
                         if(initializeCompiler(ANT_TYPE_3))
                         {
-                            a= new AntHill(ThisIsTheWorld, x, y, ANT_TYPE_3, m_antInstructions.at(3));
+                            a= new AntHill(this, x, y, ANT_TYPE_3, m_antInstructions[3]);
                             addActor(a);
-                            m_colonyScores.push_back(0);
+                            m_colonyScores[3]=0;
                         }
                         else
                             return GWSTATUS_LEVEL_ERROR;
@@ -104,31 +104,31 @@ int StudentWorld::init()
                 }
                 case (Field::FieldItem::food):
                 {
-                    a= new Food(ThisIsTheWorld, x, y, FOOD_START_ENERGY);
+                    a= new Food(this, x, y, FOOD_START_ENERGY);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::grasshopper):
                 {
-                    a= new BabyGrasshopper(ThisIsTheWorld, x, y);
+                    a= new BabyGrasshopper(this, x, y);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::water):
                 {
-                    a= new WaterPool(ThisIsTheWorld, x, y);
+                    a= new WaterPool(this, x, y);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::rock):
                 {
-                    a= new Pebble(ThisIsTheWorld, x, y);
+                    a= new Pebble(this, x, y);
                     addActor(a);
                     break;
                 }
                 case (Field::FieldItem::poison):
                 {
-                    a= new Poison(ThisIsTheWorld, x, y);
+                    a= new Poison(this, x, y);
                     addActor(a);
                     break;
                 }
@@ -152,14 +152,17 @@ int StudentWorld::move()
         for(int c=0; c<64; c++)
             for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end(); it++)
                 {
-                    //get the actor's current location
-                    int oldX= (*it)->getX() , oldY = (*it)->getY();
+                    if((*it)!=nullptr)
+                    {
+                        //get the actor's current location
+                        int oldX= (*it)->getX() , oldY = (*it)->getY();
                     
-                    if(!(*it)->isDead())
+                        if(!(*it)->isDead())
                         (*it)->doSomething();
                     
-                    if((*it)->getX()!= oldX || (*it)->getY()!=oldY)
-                        moveActor((*it), oldX, oldY, it);
+                        if((*it)->getX()!= oldX || (*it)->getY()!=oldY)
+                        addActor(*it);
+                    }
                 }
     
     removeDeadActors();
@@ -187,17 +190,20 @@ void StudentWorld::cleanUp()
         for(int c=0; c<64; c++)
             for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end(); it++)
             {
-                if(count<1)
+                if((*it)!= nullptr)
                 {
-                    delete (*it)->getWorld();
-                    count++;
-                }
+                    if(count<1)
+                    {
+                        delete (*it)->getWorld();
+                        count++;
+                    }
                 
-                delete (*it);
+                    delete (*it);
+                }
             }
     
-    for( auto it = m_antInstructions.begin(); it!=m_antInstructions.end(); it++)
-        delete (*it);
+    for(auto i = 0; i<4; i++)
+        delete m_antInstructions[i];
     
     
     
@@ -225,8 +231,13 @@ Actor* StudentWorld::getEdibleAt(int x, int y) const
 {
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->isEdible())
-            return (*it);
+    {
+        if((*it)!=nullptr)
+        {
+            if((*it)->isEdible())
+                return (*it);
+        }
+    }
     return nullptr;
 }
 
@@ -236,8 +247,13 @@ Actor* StudentWorld::getPheromoneAt(int x, int y, int colony) const
 {
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->isPheromone())
+    {
+        if((*it)!=nullptr)
+        {
+            if((*it)->isPheromone())
             return (*it);
+        }
+    }
     return nullptr;
 }
 
@@ -246,9 +262,13 @@ bool StudentWorld::isEnemyAt(int x, int y, int colony) const
 {
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->isEnemy(colony))
+    {
+        if((*it)!=nullptr)
+        {
+            if((*it)->isEnemy(colony))
             return true;
-    
+        }
+    }
     return false;
 }
 
@@ -257,8 +277,13 @@ bool StudentWorld::isDangerAt(int x, int y, int colony) const
 {
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->isDangerous(colony))
+    {
+        if((*it)!=nullptr)
+        {
+            if((*it)->isDangerous(colony))
             return true;
+        }
+    }
     
     return false;
 }
@@ -268,8 +293,14 @@ bool StudentWorld::isAntHillAt(int x, int y, int colony) const
 {
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->isAntHill(colony))
+    {
+        if((*it)!=nullptr)
+        {
+            
+            if((*it)->isAntHill(colony))
             return true;
+        }
+    }
     
     return false;
 }
@@ -282,12 +313,16 @@ bool StudentWorld::biteEnemyAt(Actor* me, int colony, int biteDamage)
     vector<Actor*> v = m_PlayingField[me->getY()][me->getX()];
     
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->isEnemy(colony) && (*it)!= me)
+    {
+        if((*it)!=nullptr)
         {
-            (*it)->getBitten(biteDamage);
-            return true;
+            if((*it)->isEnemy(colony) && (*it)!= me)
+            {
+                (*it)->getBitten(biteDamage);
+                return true;
+            }
         }
-
+    }
     return false;
 }
 
@@ -298,11 +333,16 @@ bool StudentWorld::poisonAllPoisonableAt(int x, int y)
     
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->becomesFoodUponDeath())
+    {
+        if((*it)!=nullptr)
         {
-            (*it)->getPoisoned();
-            poisonedAnActor = true;
+            if((*it)->becomesFoodUponDeath())
+            {
+                (*it)->getPoisoned();
+                poisonedAnActor = true;
+            }
         }
+    }
     return poisonedAnActor;
 }
 
@@ -313,10 +353,13 @@ bool StudentWorld::stunAllStunnableAt(int x, int y)
     
     vector<Actor*> v = m_PlayingField[y][x];
     for(auto it = v.begin(); it!= v.end(); it++)
-        if((*it)->becomesFoodUponDeath())
+        if((*it)!=nullptr)
         {
-            (*it)->getStunned();
-            stunnedAnActor = true;
+            if((*it)->becomesFoodUponDeath())
+            {
+                (*it)->getStunned();
+                stunnedAnActor = true;
+            }
         }
     return stunnedAnActor;
 }
@@ -346,13 +389,15 @@ bool StudentWorld::initializeCompiler(int colony)
         Compiler* c = new Compiler();
         if(c->compile(s, ErrorMessage))
         {
-            m_antInstructions.push_back(c);
+            m_antInstructions[colony]=c;
             return true;
         }
         else
+        {
             cout << ErrorMessage << endl;
+            return false;
+        }
     
-    return false;
 }
 
 
@@ -361,19 +406,51 @@ void StudentWorld::decreaseTickCount()
     m_ticks--;
 }
 
-
-void StudentWorld::moveActor(Actor* a, int oldX, int oldY, vector<Actor*>::iterator it)
-{
-    m_PlayingField[oldY][oldX].erase(it);
-    addActor(a);
-}
-
 void StudentWorld::formatGameStatText()
 {
-    string s = "";
-    s+= "Ticks:";
-    s+="";
-    setGameStatText("something");
+    string simulationHeader = "";
+    simulationHeader+= "Ticks:";
+    
+    ostringstream ticks;
+    ticks << setw(5) << getTicks() << endl;
+    ticks.fill('0');
+    string s1 = ticks.str();
+    simulationHeader+= s1;
+    
+    vector<string> v = getFilenamesOfAntPrograms();
+    int colony= 0;
+    for(auto it = v.begin(); it!= v.end(); it++,colony++)
+    {
+        string s2;
+        if(colony == getWinningColony())
+        {
+            ostringstream ants;
+            ants << setw(2) << m_colonyScores[colony] << endl;
+            ants.fill('0');
+            string temp = ants.str();
+            
+            //concatenating each player's status
+            s2+= (*it);
+            s2+= "*: "; s2+= temp; 
+            s2+= m_colonyScores[colony]; s2+= "  ";
+            simulationHeader+=s2;
+        }
+        else
+        {
+            ostringstream ants;
+            ants << setw(2) << m_colonyScores[colony] << endl;
+            ants.fill('0');
+            string temp = ants.str();
+            
+            //concatenating each player's status
+            s2+= (*it);
+            s2+= ": "; s2+= temp;
+            s2+= m_colonyScores[colony]; s2+= "  ";
+            simulationHeader+=s2;
+        }
+    }
+    
+    setGameStatText(simulationHeader);
 }
 
 int StudentWorld::getTicks() const
@@ -387,12 +464,29 @@ void StudentWorld::removeDeadActors()
         for(int c=0; c<64; c++)
             for (auto it = m_PlayingField[r][c].begin(); it != m_PlayingField[r][c].end();)
             {
-                if((*it)->isDead())
+                if((*it)!=nullptr)
                 {
-                    it= m_PlayingField[r][c].erase(it);
+                    if((*it)->isDead())
+                    {
+                        if((*it)->becomesFoodUponDeath())
+                        {
+                            if(getEdibleAt(c,r)!=nullptr)
+                            {
+                                Food* a = (Food *)getEdibleAt(c, r);
+                                a->updateEnergy(100);
+                            }
+                            else
+                            {
+                                Actor* a = new Food(this, c , r, 100 );
+                                addActor(a);
+                            }
+                        }
+                    delete (*it);
+                    }
                 }
                 else
                     it++;
+            
             }
 }
 
