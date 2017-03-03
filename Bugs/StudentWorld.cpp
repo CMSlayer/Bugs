@@ -474,14 +474,16 @@ void StudentWorld::removeDeadActors()
                             {
                                 Food* a = (Food *)getEdibleAt(c, r);
                                 a->updateEnergy(100);
+                                delete (*it);
                             }
                             else
                             {
                                 Actor* a = new Food(this, c , r, 100 );
                                 addActor(a);
+                                delete (*it);
                             }
                         }
-                    delete (*it);
+                    
                     }
                 }
                 
